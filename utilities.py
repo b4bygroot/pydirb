@@ -16,7 +16,7 @@ TOOL = text2art ( 'pydirb', font = 'small' )
 TOOL = rainbowtext.text ( TOOL ) + colored ( '', 'white' )
 
 THREADS = 20
-EXTENSIONS = [ 'bak', 'html', 'inc', 'php' ]
+EXTENSIONS = [ 'bak', 'html', 'inc', '.orig', 'php' ]
 STAT_CODES = [ 200, 204, 301, 302, 307, 401, 403 ]
 USER_AGENT = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 '
@@ -33,6 +33,20 @@ USER_AGENT = [
 ]
 
 HEADER_LINE = '=' * 80
+
+
+def getLists ( variable ):
+
+    """
+    The function accepts a CSV 'string' as an argument and returns it as a 'list'
+    :param variable: a string or list
+    :return: given argument as a list
+    """
+    if isinstance ( variable, list ):
+        return variable
+    else:
+        variable = [ i for i in variable.split ( ',') ]
+        return variable
 
 
 class Pydirb ( object ):
@@ -62,22 +76,18 @@ class Pydirb ( object ):
 
         self.threads = threads
 
-        self.statCode = self.getLists ( statCode )
-        self.extensions = self.getLists ( extensions )
+        self.statCode = getLists ( statCode )
+        self.extensions = getLists ( extensions )
+        self.extensions = [ '.' + i if not i.startswith ( '.' ) else i for i in self.extensions ]
         self.usrAgent = usrAgent
 
-    def getLists ( self, variable ):
+    def gatherWords ( self, wordPath):
 
         """
-        The function accepts a CSV 'string' or 'list' as an argument and returns it as a 'list'
-        :param variable: a string or list
-        :return: given argument as a list
+
+        :param wordPath:
+        :return:
         """
-        if isinstance ( variable, list ):
-            return variable
-        else:
-            variable = [ i for i in variable.split ( ',') ]
-            return variable
 
     def printHeader ( self ):
 
@@ -86,18 +96,19 @@ class Pydirb ( object ):
         :return: None
         """
         print ( HEADER_LINE )
-        print ( colored ( 'pydirb ' + VERSION, 'red' ).center (80) )
+        print ( colored ( 'pydirb ' + VERSION, 'red' ).center ( 80 ) )
         print ( HEADER_LINE )
         print ( 'URL:'.ljust ( 15 ) + colored ( self.target, 'yellow' ) )
         print ( 'Threads:'.ljust ( 15 ) + colored ( self.threads, 'yellow' ) )
         print ( 'Wordlist:'.ljust ( 15 ) + colored ( self.wordPath, 'yellow' ) )
-        print ( 'Extensions:'.ljust ( 15 ) + colored ( ','.join ( map ( str, self.extensions ) ), 'yellow' ) )
-        print ( 'Status Codes:'.ljust ( 15 ) + colored ( ','.join ( map ( str, self.statCode ) ), 'yellow' ) )
+        print ( 'Extensions:'.ljust ( 15 ) + colored ( ', '.join ( map ( str, self.extensions ) ), 'yellow' ) )
+        print ( 'Status Codes:'.ljust ( 15 ) + colored ( ', '.join ( map ( str, self.statCode ) ), 'yellow' ) )
         print ( 'User Agent:'.ljust ( 15 ) + colored ( self.usrAgent, 'yellow' ) )
         print ( HEADER_LINE )
 
 
 def getArgs ( ):
+
     """
     The function parses the user supplied options and assign them to their corresponding variables.
     :arg: None
