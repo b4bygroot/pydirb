@@ -36,7 +36,6 @@ HEADER_LINE = '=' * 80
 
 
 def getLists ( variable ):
-
     """
     The function accepts a CSV 'string' as an argument and returns it as a 'list'
     :param variable: a string or list
@@ -81,13 +80,37 @@ class Pydirb ( object ):
         self.extensions = [ '.' + i if not i.startswith ( '.' ) else i for i in self.extensions ]
         self.usrAgent = usrAgent
 
-    def gatherWords ( self, wordPath):
-
+    def buildWords ( self, resume = None):
         """
-
-        :param wordPath:
-        :return:
+        The function takes the path of the wordlist and extensions, and puts together a queue containing words for
+        brute forcing directories and files (with extensions)
+        :param resume:
+        :return: words: queue containing a list of words built from the wordlist and extensions.
         """
+        def extendWords ( word, extensions ):
+            if '.' in word:
+                words.put ( f'/{word}' )
+            else:
+                words.put ( f'/{word}/' )
+
+            for extension in extensions:
+                words.put ( f'/{word}{extension}')
+
+        with open ( self.wordPath ) as file:
+            rawWords = file.read ()
+        foundResume = False
+        words = queue.Queue ( )
+        for word in rawWords.split ():
+            if resume is not None:
+                if foundResume:
+                   extendWords ( word, self.extensions )
+                   print (foundResume)
+                elif word == resume:
+                   foundResume = True
+            else:
+                extendWords ( word, self.extensions )
+
+        return words
 
     def printHeader ( self ):
 
@@ -179,6 +202,7 @@ def getArgs ( ):
 
     scanner = Pydirb ( ** vars ( args ) )
     scanner.printHeader ()
+    scanner.buildWords ()
 
 
 getArgs ( )
