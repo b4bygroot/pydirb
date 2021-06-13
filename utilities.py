@@ -1,15 +1,18 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import argparse
 import queue
 import rainbowtext
+import requests
 import sys
 import textwrap
-import threading
+import urllib.request
+import urllib.error
 from art import text2art
 from main import VERSION
 from pathlib import Path
 from random import choice
+from string import ascii_letters
 from termcolor import colored
 
 TOOL = text2art ( 'pydirb', font = 'small' )
@@ -49,13 +52,10 @@ def getLists ( variable ):
 
 
 class Pydirb ( object ):
-
     """
     Main class for the pydrib- directory and file buster
     """
-
     def __init__ ( self, target: str, wordPath: str, threads: int, statCode: list, extensions: list, usrAgent: str ):
-
         """
         Constructor for the pydirb class
         :param target: base URL to the target
@@ -66,6 +66,8 @@ class Pydirb ( object ):
         :param usrAgent: user agent to use
         """
         self.target = target if target.endswith ( '/' ) else target + '/'
+        self.target = target if target.startswith ( 'http://') or target.startswith ( 'https://' ) \
+            else 'http://' + target
 
         self.wordPath = wordPath
         file = Path ( wordPath )
@@ -79,6 +81,27 @@ class Pydirb ( object ):
         self.extensions = getLists ( extensions )
         self.extensions = [ '.' + i if not i.startswith ( '.' ) else i for i in self.extensions ]
         self.usrAgent = usrAgent
+
+    def checkURL ( self ):
+
+        wildCardResponse = None
+
+        try:
+            URLresponse = urllib.request.urlopen ( self.target )
+            wildCardResponse = urllib.request.urlopen ( self.target
+                                                        + ''.join ( choice ( ascii_letters ) for i in range ( 50 ) ) )
+        except urllib.error.HTTPError:
+            URLresponse = None
+
+        except urllib.error.URLError:
+            print ( f'[{colored ( "!", "red" )}] {self.target} seems to be down. Check the target URL.' )
+            URLresponse = None
+
+        if wildCardResponse:
+            print ( f'[{colored ( "!", "yellow" )}] {self.target} seems to have wildcard matching.' )
+            return False
+        elif URLresponse:
+            return True
 
     def buildWords ( self, resume = None):
         """
@@ -113,7 +136,6 @@ class Pydirb ( object ):
         return words
 
     def printHeader ( self ):
-
         """
         Prints the header portion of the pydirb tool
         :return: None
@@ -131,7 +153,6 @@ class Pydirb ( object ):
 
 
 def getArgs ( ):
-
     """
     The function parses the user supplied options and assign them to their corresponding variables.
     :arg: None
@@ -202,6 +223,7 @@ def getArgs ( ):
 
     scanner = Pydirb ( ** vars ( args ) )
     scanner.printHeader ()
+    scanner.checkURL ()
     scanner.buildWords ()
 
 
