@@ -3,21 +3,26 @@
 import argparse
 import queue
 import rainbowtext
-import requests
 import sys
 import textwrap
 import urllib.request
 import urllib.error
+
+import requests
 from art import text2art
-from main import VERSION
 from pathlib import Path
 from random import choice
 from string import ascii_letters
 from termcolor import colored
 
+VERSION = 'v0.01'
+
 TOOL = text2art ( 'pydirb', font = 'small' )
 TOOL = rainbowtext.text ( TOOL ) + colored ( '', 'white' )
-
+SUCCESS = colored ( "+", "green" )
+RESULT = colored ( "+", "yellow" )
+HEADER_LINE = '=' * 80
+# Default Arguments
 THREADS = 20
 EXTENSIONS = [ 'bak', 'html', 'inc', '.orig', 'php' ]
 STAT_CODES = [ 200, 204, 301, 302, 307, 401, 403 ]
@@ -35,8 +40,6 @@ USER_AGENT = [
     'Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)'
 ]
 
-HEADER_LINE = '=' * 80
-
 
 def getLists ( variable ):
     """
@@ -53,7 +56,7 @@ def getLists ( variable ):
 
 class Pydirb ( object ):
     """
-    Main class for the pydrib- directory and file buster
+    Main class for the pydirb- directory and file buster
     """
     def __init__ ( self, target: str, wordPath: str, threads: int, statCode: list, extensions: list, usrAgent: str ):
         """
@@ -68,7 +71,7 @@ class Pydirb ( object ):
         self.target = target if target.endswith ( '/' ) else target + '/'
         self.target = target if target.startswith ( 'http://') or target.startswith ( 'https://' ) \
             else 'http://' + target
-
+        
         self.wordPath = wordPath
         file = Path ( wordPath )
         if not file.exists ( ):
@@ -76,20 +79,26 @@ class Pydirb ( object ):
             sys.exit ( 1 )
 
         self.threads = threads
-
-        self.statCode = getLists ( statCode )
+        self.statCode = list ( map ( int, getLists ( statCode ) ) )
         self.extensions = getLists ( extensions )
         self.extensions = [ '.' + i if not i.startswith ( '.' ) else i for i in self.extensions ]
         self.usrAgent = usrAgent
 
     def checkURL ( self ):
-
+        """
+        Checks whether the target URL is up and whether the target has wildcard matching enabled.
+        :return: True, if the target is up and has no wildcard matching
+                 False, if the target is down or has wildcard matching
+        """
         wildCardResponse = None
-
         try:
             URLresponse = urllib.request.urlopen ( self.target )
-            wildCardResponse = urllib.request.urlopen ( self.target
+            try:
+                wildCardResponse = urllib.request.urlopen ( self.target
                                                         + ''.join ( choice ( ascii_letters ) for i in range ( 50 ) ) )
+            except:
+                wildCardResponse = None
+
         except urllib.error.HTTPError:
             URLresponse = None
 
@@ -107,8 +116,8 @@ class Pydirb ( object ):
         """
         The function takes the path of the wordlist and extensions, and puts together a queue containing words for
         brute forcing directories and files (with extensions)
-        :param resume:
-        :return: words: queue containing a list of words built from the wordlist and extensions.
+        :param resume: word to resume the wordlist building in case of error.
+        :return: words: queue containing a list of words, built with the wordlist and extensions.
         """
         def extendWords ( word, extensions ):
             if '.' in word:
@@ -135,6 +144,22 @@ class Pydirb ( object ):
 
         return words
 
+    def bruteURL ( self, client:requests.Session, target:str, word:str ):
+        """
+        The brute force function, that makes a get request to the target's base URL + given a word and checks whether
+        the returned status code is present in acceptable status codes and print this to the STDOUT.
+        :param client: Session object to send the requests.
+        :param target: target's base URL.
+        :param word: additional word to add to the base URL.
+        :return: True
+        """
+        response = client.get ( target + word )
+
+        if response.status_code in self.statCode:
+            print ( f'[{RESULT}] Status: {response.status_code}  {target + word}' )
+
+        return True
+
     def printHeader ( self ):
         """
         Prints the header portion of the pydirb tool
@@ -156,15 +181,21 @@ def getArgs ( ):
     """
     The function parses the user supplied options and assign them to their corresponding variables.
     :arg: None
-    :return:
+    :return: args, user supplied arguments.
     """
     parser = argparse.ArgumentParser (
-        description = TOOL,
+        description = f'{TOOL}\n'
+                      f'A simple directory and file brute force tool written in python.\n'
+                      f'Author: b4bygroot\n'
+                      f'b4bygroot@protonmail.com',
         formatter_class = argparse.RawTextHelpFormatter,
         epilog = textwrap.dedent (
             f'''
             {(colored ( 'Example:', 'red' ))}
-            {(colored ( './pydirb -u http://target.com -w /usr/share/wordlist.txt', 'white' ))}
+            ./pydirb -u http://target.com -w /usr/share/wordlist.txt
+            ./pydirb -u http://target.com -w /usr/share/wordlist.txt -e php,bak
+            ./pydirb -u http://target.com -w /usr/share/wordlist.txt -e php -s 200,301
+            ./pydirb -u http://target.com -w /usr/share/wordlist.txt -e bak -s 200 -z Custom/1.0
             '''
         )
     )
@@ -220,11 +251,4 @@ def getArgs ( ):
     )
 
     args = parser.parse_args ( )
-
-    scanner = Pydirb ( ** vars ( args ) )
-    scanner.printHeader ()
-    scanner.checkURL ()
-    scanner.buildWords ()
-
-
-getArgs ( )
+    return args
