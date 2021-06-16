@@ -120,6 +120,8 @@ class Pydirb ( object ):
         :return: words: queue containing a list of words, built with the wordlist and extensions.
         """
         def extendWords ( word, extensions ):
+            if word.startswith ( '#' ):
+                return
             if '.' in word:
                 words.put ( f'/{word}' )
             else:
@@ -174,6 +176,11 @@ class Pydirb ( object ):
         print ( 'Extensions:'.ljust ( 15 ) + colored ( ', '.join ( map ( str, self.extensions ) ), 'yellow' ) )
         print ( 'Status Codes:'.ljust ( 15 ) + colored ( ', '.join ( map ( str, self.statCode ) ), 'yellow' ) )
         print ( 'User Agent:'.ljust ( 15 ) + colored ( self.usrAgent, 'yellow' ) )
+        print ( HEADER_LINE )
+
+    def printTailer ( self ):
+        print ( HEADER_LINE )
+        print ( f'Brute forcing completed'.center ( 80 ) )
         print ( HEADER_LINE )
 
 

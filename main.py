@@ -24,9 +24,7 @@ def main ():
                     executor.map ( scanner.bruteURL, clientIter, targetIter, wordList.queue )
                 except :
                     executor.shutdown ()
-            print ( HEADER_LINE )
-            print ( f'Brute forcing completed'.center ( 80 ) )
-            print ( HEADER_LINE )
+            scanner.printTailer ()
 
 
 if __name__ == '__main__':
