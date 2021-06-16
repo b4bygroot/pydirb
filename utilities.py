@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import argparse
 import queue
 import rainbowtext
@@ -199,10 +197,10 @@ def getArgs ( ):
         epilog = textwrap.dedent (
             f'''
             {(colored ( 'Example:', 'red' ))}
-            ./pydirb -u http://target.com -w /usr/share/wordlist.txt
-            ./pydirb -u http://target.com -w /usr/share/wordlist.txt -e php,bak
-            ./pydirb -u http://target.com -w /usr/share/wordlist.txt -e php -s 200,301
-            ./pydirb -u http://target.com -w /usr/share/wordlist.txt -e bak -s 200 -z Custom/1.0
+            ./pydirb.py -u http://target.com -w /usr/share/wordlist.txt
+            ./pydirb.py -u http://target.com -w /usr/share/wordlist.txt -e php,bak
+            ./pydirb.py -u http://target.com -w /usr/share/wordlist.txt -e php -s 200,301
+            ./pydirb.py -u http://target.com -w /usr/share/wordlist.txt -e bak -s 200 -z Custom/1.0
             '''
         )
     )
