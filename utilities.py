@@ -1,3 +1,19 @@
+"""
+File: utilities.py
+Contains:
+        Pydirb   --> main class
+            __init__    --> constructor for the Pydirb class
+            checkURL    --> checks whether the target URL is reachable and has no wildcard matching
+            buildWords  --> builds a queue of words from the supplied word path
+            bruteURL    --> makes a get to target URL with a specified word and analyzes its response
+            printHeader --> prints the head portion of the pydirb tool
+            printTailer --> prints the tail portion of the pydirb tool
+        getArgs  --> parses user supplied arguments and returns them as corresponding variables
+Author: b4bygroot
+Created: July 2021
+(c) Copyright 2021 b4bygroot
+"""
+
 import argparse
 import queue
 import rainbowtext
@@ -5,7 +21,6 @@ import sys
 import textwrap
 import urllib.request
 import urllib.error
-
 import requests
 from art import text2art
 from pathlib import Path
@@ -41,7 +56,7 @@ USER_AGENT = [
 
 def getLists ( variable ):
     """
-    The function accepts a CSV 'string' as an argument and returns it as a 'list'
+    The function accepts a comma-separated 'string' as an argument and returns it as a 'list'
     :param variable: a string or list
     :return: given argument as a list
     """
@@ -81,10 +96,11 @@ class Pydirb ( object ):
         self.extensions = getLists ( extensions )
         self.extensions = [ '.' + i if not i.startswith ( '.' ) else i for i in self.extensions ]
         self.usrAgent = usrAgent
+        return
 
     def checkURL ( self ):
         """
-        Checks whether the target URL is up and whether the target has wildcard matching enabled.
+        Checks whether the target URL is up and reachable, and whether the target has wildcard matching enabled.
         :return: True, if the target is up and has no wildcard matching
                  False, if the target is down or has wildcard matching
         """
@@ -176,10 +192,14 @@ class Pydirb ( object ):
         print ( 'User Agent:'.ljust ( 15 ) + colored ( self.usrAgent, 'yellow' ) )
         print ( HEADER_LINE )
 
+        return
+
     def printTailer ( self ):
         print ( HEADER_LINE )
         print ( f'Brute forcing completed'.center ( 80 ) )
         print ( HEADER_LINE )
+
+        return
 
 
 def getArgs ( ):

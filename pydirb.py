@@ -1,8 +1,16 @@
 #!/usr/bin/env python
+"""
+File: pydirb.py
+Contains: main --> kicks off the brute forcing dirs and files
+Author: b4bygroot
+Created: July 2021
+(c) Copyright 2021 b4bygroot
+"""
+
 import requests
 import concurrent.futures as cf
 from termcolor import colored
-from utilities import Pydirb, getArgs, SUCCESS, HEADER_LINE
+from utilities import Pydirb, getArgs, SUCCESS
 
 
 def main ():
@@ -25,6 +33,7 @@ def main ():
                 except :
                     executor.shutdown ()
             scanner.printTailer ()
+    return
 
 
 if __name__ == '__main__':
